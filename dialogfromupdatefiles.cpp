@@ -16,7 +16,7 @@ dialogfromupdatefiles::~dialogfromupdatefiles()
 
 void dialogfromupdatefiles::on_update_clicked()
 {
-    QString path = QFileDialog::getOpenFileName(nullptr, "Выберите архив","","Файл архива *.rar");
+    QString path = QFileDialog::getOpenFileName(nullptr, "Выберите архив","","Файл архива *.zip");
     if (!path.isEmpty())
     {
         QDir dir;
@@ -30,6 +30,13 @@ void dialogfromupdatefiles::on_update_clicked()
             dir.mkdir("fileDir");
         }
 
-        QFile::copy(path,"fileDir/update.rar");
+        QFile::copy(path,"fileDir/update.zip");
+        QFile file (path);
+        QSettings set ("settings.ini", QSettings::IniFormat);
+        set.beginGroup("UpdateInfo");
+        set.setValue("date", QDateTime::currentDateTime());
+        set.setValue("size", file.size());
+        set.endGroup();
+        set.sync();
     }
 }

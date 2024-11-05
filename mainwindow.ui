@@ -25,6 +25,10 @@
   <property name="windowTitle">
    <string>Загрузка обновления</string>
   </property>
+  <property name="windowIcon">
+   <iconset theme="QIcon::ThemeIcon::GoDown">
+    <normaloff>.</normaloff>.</iconset>
+  </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QHBoxLayout" name="horizontalLayout_2">
     <item>
@@ -36,7 +40,15 @@
        <enum>QLayout::SetMaximumSize</enum>
       </property>
       <item>
-       <widget class="QLabel" name="label">
+       <widget class="QLabel" name="labelUnk">
+        <property name="font">
+         <font>
+          <family>Century Gothic</family>
+          <pointsize>24</pointsize>
+          <weight>75</weight>
+          <bold>true</bold>
+         </font>
+        </property>
         <property name="layoutDirection">
          <enum>Qt::LeftToRight</enum>
         </property>
@@ -47,7 +59,10 @@
          <enum>QFrame::Plain</enum>
         </property>
         <property name="text">
-         <string>Выберите свое подразделение</string>
+         <string>Выберите  подразделение</string>
+        </property>
+        <property name="scaledContents">
+         <bool>false</bool>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
@@ -55,7 +70,14 @@
        </widget>
       </item>
       <item>
-       <widget class="QListWidget" name="listDepartament"/>
+       <widget class="QListWidget" name="listDepartament">
+        <property name="font">
+         <font>
+          <family>Century Gothic</family>
+          <pointsize>20</pointsize>
+         </font>
+        </property>
+       </widget>
       </item>
       <item>
        <spacer name="verticalSpacer">
@@ -67,14 +89,76 @@
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>5</width>
-          <height>100</height>
+          <width>4</width>
+          <height>50</height>
          </size>
         </property>
        </spacer>
       </item>
       <item>
+       <widget class="QProgressBar" name="progressBar">
+        <property name="value">
+         <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item>
        <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <spacer name="horizontalSpacer_3">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="font">
+           <font>
+            <family>Century Gothic</family>
+            <pointsize>14</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>Инофрамция об обновлении:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_7">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QLabel" name="dataUpdate">
+          <property name="font">
+           <font>
+            <family>Century Gothic</family>
+            <pointsize>14</pointsize>
+           </font>
+          </property>
+          <property name="autoFillBackground">
+           <bool>false</bool>
+          </property>
+          <property name="text">
+           <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Дата: 20.01.2024&lt;br/&gt;Размер: 20 MB&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+          </property>
+         </widget>
+        </item>
         <item>
          <spacer name="horizontalSpacer_6">
           <property name="orientation">
@@ -99,21 +183,27 @@
           <property name="minimumSize">
            <size>
             <width>70</width>
-            <height>70</height>
+            <height>60</height>
            </size>
           </property>
-          <property name="text">
-           <string/>
+          <property name="font">
+           <font>
+            <family>Century Gothic</family>
+            <pointsize>14</pointsize>
+           </font>
           </property>
-          <property name="icon">
-           <iconset resource="resources.qrc">
-            <normaloff>:/source/download.svg</normaloff>:/source/download.svg</iconset>
+          <property name="text">
+           <string>Получить обновление
+Dr.Web</string>
           </property>
           <property name="iconSize">
            <size>
             <width>40</width>
             <height>40</height>
            </size>
+          </property>
+          <property name="checkable">
+           <bool>false</bool>
           </property>
          </widget>
         </item>
@@ -130,20 +220,47 @@
           </property>
          </spacer>
         </item>
-        <item>
-         <spacer name="horizontalSpacer_3">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>40</width>
-            <height>20</height>
-           </size>
-          </property>
-         </spacer>
-        </item>
        </layout>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <spacer name="verticalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="font1">
+        <property name="minimumSize">
+         <size>
+          <width>203</width>
+          <height>350</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="resources.qrc">
+          <normaloff>:/source/МПИ.tif</normaloff>:/source/МПИ.tif</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>203</width>
+          <height>350</height>
+         </size>
+        </property>
+       </widget>
       </item>
      </layout>
     </item>
@@ -176,6 +293,46 @@
       </property>
      </spacer>
     </item>
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <spacer name="verticalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>40</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="font2">
+        <property name="minimumSize">
+         <size>
+          <width>203</width>
+          <height>350</height>
+         </size>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+        <property name="icon">
+         <iconset resource="resources.qrc">
+          <normaloff>:/source/герб2.png</normaloff>:/source/герб2.png</iconset>
+        </property>
+        <property name="iconSize">
+         <size>
+          <width>203</width>
+          <height>350</height>
+         </size>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
    </layout>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -184,7 +341,7 @@
      <x>0</x>
      <y>0</y>
      <width>1920</width>
-     <height>21</height>
+     <height>20</height>
     </rect>
    </property>
    <widget class="QMenu" name="menu">
@@ -200,15 +357,6 @@
    </widget>
    <addaction name="menu"/>
   </widget>
-  <widget class="QToolBar" name="mainToolBar">
-   <attribute name="toolBarArea">
-    <enum>TopToolBarArea</enum>
-   </attribute>
-   <attribute name="toolBarBreak">
-    <bool>false</bool>
-   </attribute>
-  </widget>
-  <widget class="QStatusBar" name="statusBar"/>
   <action name="men_updat">
    <property name="text">
     <string>Обновление</string>

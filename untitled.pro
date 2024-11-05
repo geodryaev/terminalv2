@@ -6,6 +6,7 @@
 
 QT       += core gui
 QT       += widgets
+QT       += gui widgets
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -24,8 +25,12 @@ DEFINES += QT_DEPRECATED_WARNINGS
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 CONFIG += c++11
+CONFIG += private
 
 RESOURCES += resources.qrc
+
+INCLUDEPATH += C:\Qt\Qt5.11.3\5.11.3\mingw53_32\include\QtGui\5.11.3
+INCLUDEPATH += C:\Qt\Qt5.11.3\5.11.3\mingw53_32\include\QtCore\5.11.3
 
 SOURCES += \
         main.cpp \
@@ -33,20 +38,23 @@ SOURCES += \
     widgetdelegate.cpp \
     passwd.cpp \
     dialogfromupdatefiles.cpp \
-    dialogsetpathtosave.cpp
+    dialogsetpathtosave.cpp \
+    listgansta.cpp
 
 HEADERS += \
         mainwindow.h \
     widgetdelegate.h \
     passwd.h \
     dialogfromupdatefiles.h \
-    dialogsetpathtosave.h
+    dialogsetpathtosave.h \
+    listgansta.h
 
 FORMS += \
         mainwindow.ui \
     passwd.ui \
     dialogfromupdatefiles.ui \
-    dialogsetpathtosave.ui
+    dialogsetpathtosave.ui \
+    listgansta.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

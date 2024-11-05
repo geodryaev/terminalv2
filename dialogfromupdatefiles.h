@@ -4,7 +4,8 @@
 #include <QDialog>
 #include <QFileDialog>
 #include <QDir>
-
+#include <QSettings>
+#include <QDateTime>
 namespace Ui {
 class dialogfromupdatefiles;
 }

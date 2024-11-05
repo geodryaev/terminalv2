@@ -44,16 +44,15 @@ QList<QString> myWidget::getListDepartament()
         if (d.open(QIODevice::WriteOnly))
         {
             QJsonArray arrJsn;
-            arrJsn.append("Отдел информатизации");
-            arrJsn.append("Отдел хещения средств институа");
-            arrJsn.append("Отдел посылания \"Иди отсюда\" быстрее дыхания");
-            arrJsn.append("Отдел зачем тебе 2НДФЛ");
-            arrJsn.append("Отдел научись сам стрелять");
-            arrJsn.append("Отдел научной типо деятельности");
-            arrJsn.append("Отдел спецБАТАНАЛЬОНА");
+            arrJsn.append("Отделение информатизации");
+            arrJsn.append("Отдел МТО");
+            arrJsn.append("Отдел Кдаров");
+            arrJsn.append("Отдел НДФЛ");
+            arrJsn.append("Отдел ствола");
+            arrJsn.append("Отдел науки");
+            arrJsn.append("Отдел спецназа за кавказа");
             arrJsn.append("Дядки ОТДЕЛ");
-            arrJsn.append("Отдел слепых за слежкой (кроме кра... конечно же)учебного процесса");
-            arrJsn.append("И еще три пи***, три звезды отделов");
+            arrJsn.append("Отдел мне реально лень писать, сами в JSON запишите лентяи");
             QJsonObject object;
             object["departaments"] = arrJsn;
             QJsonDocument doc(object);

@@ -2,5 +2,8 @@
 	<qresource prefix="/">
 		<file>source/unnamed.jpg</file>
 		<file>source/download.svg</file>
+		<file>source/герб1.png</file>
+		<file>source/герб2.png</file>
+		<file>source/МПИ.tif</file>
 	</qresource>
 </RCC>

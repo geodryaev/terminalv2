@@ -21,5 +21,4 @@ void dialogsetpathtosave::on_pushButton_clicked()
     set.setValue("pathToSave", path[0] + ":\\");
     set.endGroup();
     set.sync();
-
 }

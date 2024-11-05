@@ -1,0 +1,13 @@
+INPUT(
+./release\main.o
+./release\mainwindow.o
+./release\widgetdelegate.o
+./release\passwd.o
+./release\dialogfromupdatefiles.o
+./release\dialogsetpathtosave.o
+./release\qrc_resources.o
+./release\moc_mainwindow.o
+./release\moc_passwd.o
+./release\moc_dialogfromupdatefiles.o
+./release\moc_dialogsetpathtosave.o
+);
