@@ -1,9 +1,17 @@
 #ifndef LISTGANSTA_H
 #define LISTGANSTA_H
 
+#include <QDebug>
 #include <QDialog>
 #include <QJsonDocument>
 #include <QFile>
+#include <QJsonObject>
+#include <QJsonArray>
+#include <QMap>
+#include <QVector>
+#include <QStandardItemModel>
+#include <QStandardItem>
+#include <QDateTime>
 
 namespace Ui {
 class listgansta;
@@ -19,6 +27,7 @@ public:
 
 private:
     Ui::listgansta *ui;
+    QStandardItemModel model;
 };
 
 #endif // LISTGANSTA_H

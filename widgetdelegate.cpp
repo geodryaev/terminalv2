@@ -14,7 +14,7 @@ void myWidget::setDefaultSettings()
 {
     settings = new QSettings ("settings.ini", QSettings::IniFormat);
     settings->beginGroup("AboutApp");
-    settings->setValue("Autor","Легенда отделения, ебанно в рот помешанный на ЗВ, мистер похуй или нихуя не будем делать, типо самый умный после Козуба - Джони, мать его чернйы прапор Дряев");
+    settings->setValue("Autor","Легенда отделения, помешанный на ЗВ, типо самый умный после Козуба - Джони, чернйы прапор Дряев");
     settings->setValue("Version", "v.01beta.NOTEST");
     settings->setValue("pathToSave","C:\\");
     settings->endGroup();

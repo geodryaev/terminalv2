@@ -25,8 +25,7 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
 
-    QDir dir("D:\\Обновление Dr.Web");
-    qDebug() << dir.count();
+    emit setTextPanel();
 
     _timer.setSingleShot(true);
     _timer.setSingleShot(true);
@@ -53,24 +52,11 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->labelUnk->setStyleSheet("color: #FFCC66; font-size: 20px;");
     ui->centralWidget->setStyleSheet("background: transparent; color: #FFCC66; font-size: 16px;");
     ui->label_2->setStyleSheet("background: transparent; color: #FFCC66; font-size: 14px;");
-    //    ui->->setStyleSheet("background: transparent; color: #FFCC66; font-size: 14px;");
+    ui->listDepartament->setStyleSheet("background: transparent; color: #FFCC66; font-size: 14px;");
     ui->dowloadUP->setStyleSheet("background: transparent; color: #FFCC66; font-size: 14px; border: 3px solid #edff21; padding: 10px; border-radius: 5px;");
     ui->menuBar->setStyleSheet("background-color: black;color: white");
 
-    QSettings set ("settings.ini", QSettings::IniFormat);
-    set.beginGroup("UpdateInfo");
-    QDateTime timeLastUpdate( set.value("date", QDateTime::fromTime_t(50)).toDateTime());
-    if (timeLastUpdate.date() == QDateTime::fromTime_t(50).date())
-    {
-        ui->dataUpdate->setText("Установите обновление");
-    }
-    else
-    {
-        ui->dataUpdate->setText("Дата: " + timeLastUpdate.date().toString() + "\nРазмер: " + QString::number(set.value("size", -1).toInt() / 1024 / 1024 ) + " MB");
 
-    }
-    qDebug() << timeLastUpdate.date().toString();
-    set.endGroup();
 
 
     QObject::connect(&_timer, &QTimer::timeout, this, [=](){
@@ -213,6 +199,8 @@ bool ThreadZip::removeDir(const QString &dirPath, int * step)
 
 void MainWindow::on_dowloadUP_clicked()
 {
+
+
     ui->progressBar->setVisible(true);
     QList <QListWidgetItem *> item = ui->listDepartament->selectedItems();
     if (item.isEmpty())
@@ -233,13 +221,20 @@ void MainWindow::on_dowloadUP_clicked()
             set.beginGroup("AboutApp");
             QString pathToSave = set.value("pathToSave", "-112").toString();
 
+
             if (pathToSave == "-112")
             {
                 QMessageBox::information(nullptr, "Ошибка пути", "Нет пути сохранения, обращаемся к админу");
                 ui->progressBar->hide();
                 return;
             }
-
+            QDir cheakDir (pathToSave);
+            if (!cheakDir.exists())
+            {
+                QMessageBox::information(nullptr, "Ошибка", "Хулиган, вставь флешку !!!");
+                ui->progressBar->hide();
+                return;
+            }
             QFile file("history_dowload.json");
             if (file.open(QIODevice::ReadWrite) | QIODevice::Text)
             {
@@ -257,7 +252,7 @@ void MainWindow::on_dowloadUP_clicked()
                     }
                 }
                 jObjHistory = jObj["history"].toObject();
-                jObjHistory [QDateTime::currentDateTime().toString()] = item[0]->text();
+                jObjHistory [QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch())] = item[0]->text();
                 jObj["history"] = jObjHistory;
                 doc = QJsonDocument(jObj);
                 file.resize(0);
@@ -295,7 +290,6 @@ void MainWindow::on_dowloadUP_clicked()
             thread->start();
         }
     }
-    //ui->progressBar->hide();
 }
 
 ThreadZip::ThreadZip(const QString outputDir)
@@ -391,12 +385,33 @@ void MainWindow::on_font2_clicked()
     }
 }
 
+void MainWindow::setTextPanel()
+{
+    {
+        QSettings set ("settings.ini", QSettings::IniFormat);
+        set.beginGroup("UpdateInfo");
+        QDateTime timeLastUpdate( set.value("date", QDateTime::fromTime_t(50)).toDateTime());
+        if (timeLastUpdate.date() == QDateTime::fromTime_t(50).date())
+        {
+            ui->dataUpdate->setText("Установите обновление");
+        }
+        else
+        {
+            ui->dataUpdate->setText("Дата: " + timeLastUpdate.date().toString() + "\nРазмер: " + QString::number(set.value("size", -1).toInt() / 1024 / 1024 ) + " MB");
+
+        }
+        qDebug() << timeLastUpdate.date().toString();
+        set.endGroup();
+    }
+}
 void MainWindow::on_men_updat_triggered()
 {
     //    if (passwdCheack())                 ---- заменить
-    if (true)
+    if (passwdCheack())
     {
         dialogfromupdatefiles dil;
+        connect(&dil, &dialogfromupdatefiles::changeData, this, &MainWindow::setTextPanel);
+
         dil.show();
         dil.exec();
     }
@@ -404,7 +419,7 @@ void MainWindow::on_men_updat_triggered()
 
 void MainWindow::on_path_to_save_triggered()
 {
-    if (true)
+    if (passwdCheack())
     {
         dialogsetpathtosave dil;
         dil.show();
@@ -415,7 +430,7 @@ void MainWindow::on_path_to_save_triggered()
 
 void MainWindow::on_set_default_triggered()
 {
-    if (true)
+    if (passwdCheack())
     {
         _support.setDefaultSettings();
         QMessageBox::information(nullptr,"Внимание", "Настройки сброшены");
@@ -424,7 +439,20 @@ void MainWindow::on_set_default_triggered()
 
 void MainWindow::on_view_gansta_triggered()
 {
+    if (passwdCheack())
+    {
     listgansta dil;
     dil.show();
     dil.exec();
+    }
+}
+
+void MainWindow::on_about_po_triggered()
+{
+    if (passwdCheack())
+    {
+    aboutMe dil;
+    dil.show();
+    dil.exec();
+    }
 }

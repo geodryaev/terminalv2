@@ -20,6 +20,7 @@
 #include <listgansta.h>
 #include <QThread>
 #include <QDateTime>
+#include <aboutme.h>
 
 namespace Ui {
 class MainWindow;
@@ -67,6 +68,10 @@ private slots:
     void on_font2_clicked();
 
     void on_view_gansta_triggered();
+    void setTextPanel();
+
+
+    void on_about_po_triggered();
 
 private:
     QTimer _timer,_timerClose, _timerResetSelectDepart;

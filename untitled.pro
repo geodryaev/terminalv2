@@ -33,6 +33,7 @@ INCLUDEPATH += C:\Qt\Qt5.11.3\5.11.3\mingw53_32\include\QtGui\5.11.3
 INCLUDEPATH += C:\Qt\Qt5.11.3\5.11.3\mingw53_32\include\QtCore\5.11.3
 
 SOURCES += \
+    aboutme.cpp \
         main.cpp \
         mainwindow.cpp \
     widgetdelegate.cpp \
@@ -42,6 +43,7 @@ SOURCES += \
     listgansta.cpp
 
 HEADERS += \
+    aboutme.h \
         mainwindow.h \
     widgetdelegate.h \
     passwd.h \
@@ -50,6 +52,7 @@ HEADERS += \
     listgansta.h
 
 FORMS += \
+    aboutme.ui \
         mainwindow.ui \
     passwd.ui \
     dialogfromupdatefiles.ui \

@@ -21,6 +21,9 @@ public:
 private slots:
     void on_update_clicked();
 
+signals:
+    void changeData();
+
 private:
     Ui::dialogfromupdatefiles *ui;
 };
