@@ -6,6 +6,7 @@
 #include <QDir>
 #include <QSettings>
 #include <QDateTime>
+#include <QMessageBox>
 namespace Ui {
 class dialogfromupdatefiles;
 }

@@ -18,7 +18,6 @@ public:
 
 
 private:
-    QSettings *settings;
     QJsonDocument _objectJSON;
 };
 

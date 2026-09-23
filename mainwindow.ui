@@ -252,7 +252,7 @@ Dr.Web</string>
         </property>
         <property name="icon">
          <iconset resource="resources.qrc">
-          <normaloff>:/source/МПИ.tif</normaloff>:/source/МПИ.tif</iconset>
+          <normaloff>:/source/mpi.tif</normaloff>:/source/mpi.tif</iconset>
         </property>
         <property name="iconSize">
          <size>
@@ -321,7 +321,7 @@ Dr.Web</string>
         </property>
         <property name="icon">
          <iconset resource="resources.qrc">
-          <normaloff>:/source/герб2.png</normaloff>:/source/герб2.png</iconset>
+          <normaloff>:/source/gerb2.png</normaloff>:/source/gerb2.png</iconset>
         </property>
         <property name="iconSize">
          <size>

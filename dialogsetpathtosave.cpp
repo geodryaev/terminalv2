@@ -16,9 +16,13 @@ dialogsetpathtosave::~dialogsetpathtosave()
 void dialogsetpathtosave::on_pushButton_clicked()
 {
     QString path = QFileDialog::getExistingDirectory(nullptr,"Выберите носитель для записи","",QFileDialog::ShowDirsOnly);
+    if (path.isEmpty())
+    {
+        return;
+    }
     QSettings set ("settings.ini", QSettings::IniFormat);
     set.beginGroup("AboutApp");
-    set.setValue("pathToSave", path[0] + ":\\");
+    set.setValue("pathToSave", QDir::toNativeSeparators(path));
     set.endGroup();
     set.sync();
 }

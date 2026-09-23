@@ -40,7 +40,7 @@ public slots:
 signals:
     void changePB(int);
     void setPB(int);
-    void complateOperation();
+    void complateOperation(bool success, const QString &message);
     private:
         QString _outDir;
 };
@@ -78,8 +78,8 @@ private:
     int _countClick;
     Ui::MainWindow *ui;
     myWidget _support;
-    QThread _thread;
-    ThreadZip * unzip;
+    QThread * _zipThread = nullptr;
+    ThreadZip * unzip = nullptr;
 };
 
 

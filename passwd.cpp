@@ -46,22 +46,18 @@ QPair<int,int> getIDbutton(QPushButton *btn)
     return QPair<int,int>(-1,-1);
 }
 
-bool acceptFirst(QVector<QPair<int, int>> send)
+QVector<QPair<int, int>> answerFor(int status)
 {
-    QVector<QPair<int, int>> answerFirst = {{0,0},{1,1},{2,2},{2,0},{0,2}};
-    return send == answerFirst;
-}
-
-bool acceptSecond(QVector<QPair<int, int>> send)
-{
-    QVector<QPair<int, int>> answerFirst = {{0,0},{1,1},{0,2},{2,0}};
-    return send == answerFirst;
-}
-
-bool acceptThird(QVector<QPair<int, int>> send)
-{
-    QVector<QPair<int, int>> answerFirst = {{0,0},{1,0},{2,0},{1,1},{0,2},{1,2},{2,2}};
-    return send == answerFirst;
+    switch (status) {
+    case 0:
+        return {{0,0},{1,1},{2,2},{2,0},{0,2}};
+    case 1:
+        return {{0,0},{1,1},{0,2},{2,0}};
+    case 2:
+        return {{0,0},{1,0},{2,0},{1,1},{0,2},{1,2},{2,2}};
+    default:
+        return {};
+    }
 }
 
 passwd::passwd(QWidget *parent) :
@@ -96,61 +92,48 @@ passwd::passwd(QWidget *parent) :
 
 void passwd::setResult()
 {
-    QPushButton *btn;
-    _countEnter++;
-    if (_countEnter < 9)
+    QPushButton *btn = qobject_cast<QPushButton*>(sender());
+    if (!btn || _status > p_third)
     {
-        switch (_status) {
-        case p_first:
-            btn = qobject_cast<QPushButton*>(sender());
-            _send.push_back(getIDbutton(btn));
-            btn->setStyleSheet("background-color: green");
-            if (acceptFirst(_send))
-            {
-                _send = {};
-                ui->log_cheak->setText("☺");
-                _countEnter = 0;
-                _status = p_second;
-                clearBtn();
-            }
-            break;
-        case p_second:
-            btn = qobject_cast<QPushButton*>(sender());
-            _send.push_back(getIDbutton(btn));
-            btn->setStyleSheet("background-color: green");
-            if (acceptSecond(_send))
-            {
-                _send = {};
-                ui->log_cheak->setText("☺☺");
-                _countEnter = 0;
-                _status = p_third;
-                clearBtn();
-            }
-            break;
-        case p_third:
-            btn = qobject_cast<QPushButton*>(sender());
-            _send.push_back(getIDbutton(btn));
-            btn->setStyleSheet("background-color: green");
-            if (acceptThird(_send))
-            {
-                _send = {};
-                ui->log_cheak->setText("☺☺☺");
-                _countEnter = 0;
-                _status = p_second;
-                clearBtn();
-                QMessageBox::information(nullptr, "Password","Успешно");
-                _result
-                        = true;
-                close();
-            }
-            break;
-        default:
-            return;
-        }
+        return;
+    }
 
+    _countEnter++;
+    _send.push_back(getIDbutton(btn));
+    btn->setStyleSheet("background-color: green");
+
+    const QVector<QPair<int, int>> answer = answerFor(_status);
+    if (_send.size() < answer.size())
+    {
+        return;
+    }
+
+    if (_send != answer)
+    {
+        QMessageBox::warning(nullptr, "Password", "Неверный пароль");
+        close();
+        return;
+    }
+
+    _send = {};
+    _countEnter = 0;
+    clearBtn();
+    if (_status == p_first)
+    {
+        ui->log_cheak->setText("☺");
+        _status = p_second;
+    }
+    else if (_status == p_second)
+    {
+        ui->log_cheak->setText("☺☺");
+        _status = p_third;
     }
     else
     {
+        ui->log_cheak->setText("☺☺☺");
+        _status = p_first;
+        QMessageBox::information(nullptr, "Password","Успешно");
+        _result = true;
         close();
     }
 }

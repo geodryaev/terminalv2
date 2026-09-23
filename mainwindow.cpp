@@ -2,7 +2,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "passwd.h"
-#include "QtGui/private/qzipreader_p.h"
+#include <QtCore/private/qzipreader_p.h>
 #include <QMainWindow>
 #include <QWidget>
 #include <QPainter>
@@ -12,23 +12,46 @@
 bool passwdCheack()
 {
     passwd passwdsCheack;
-    passwdsCheack.show();
     passwdsCheack.exec();
     return passwdsCheack.getStatus();
+}
+
+static bool appendHistory(const QString &departament)
+{
+    QFile file("history_dowload.json");
+    if (!file.open(QIODevice::ReadWrite | QIODevice::Text))
+    {
+        qWarning() << "Could not open history file:" << file.errorString();
+        return false;
+    }
+
+    QJsonObject jObj;
+    QJsonDocument doc = QJsonDocument::fromJson(file.readAll());
+    if (doc.isObject())
+    {
+        jObj = doc.object();
+    }
+    QJsonObject jObjHistory = jObj["history"].toObject();
+    jObjHistory[QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch())] = departament;
+    jObj["history"] = jObjHistory;
+
+    file.resize(0);
+    file.write(QJsonDocument(jObj).toJson());
+    file.close();
+    return true;
 }
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
     _countClick(0),
-    ui(new Ui::MainWindow),
-    _thread(new QThread)
+    ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
 
-    emit setTextPanel();
+    setTextPanel();
 
     _timer.setSingleShot(true);
-    _timer.setSingleShot(true);
+    _timerClose.setSingleShot(true);
     _timerResetSelectDepart.setSingleShot(true);
     this->showFullScreen();
     this->setWindowModality(Qt::ApplicationModal);
@@ -41,8 +64,7 @@ MainWindow::MainWindow(QWidget *parent) :
     }
     QList<QString> list = _support.getListDepartament();
 
-    QStringList qslis;
-    for (QString strElem : list)
+    for (const QString &strElem : list)
     {
         new QListWidgetItem(strElem, ui->listDepartament);
     }
@@ -72,7 +94,7 @@ MainWindow::MainWindow(QWidget *parent) :
     });
 
     QObject::connect(ui->font2, &QPushButton::clicked, this, [=](){
-        if(_countClick == 5 and _timer.isActive())
+        if(_countClick == 5 && _timer.isActive())
         {
             _timerClose.start(2*60*1000);
             ui->menuBar->setVisible(true);
@@ -80,90 +102,45 @@ MainWindow::MainWindow(QWidget *parent) :
         }
     });
 
-    QObject::connect(ui->listDepartament,&QListWidget::clicked, this,[=](){
-        _timerResetSelectDepart.start(5000);
+    QObject::connect(ui->listDepartament, &QListWidget::itemSelectionChanged, this, [=](){
+        if (!ui->listDepartament->selectedItems().isEmpty())
+        {
+            _timerResetSelectDepart.start(5000);
+        }
     });
 
     QObject::connect(&_timerResetSelectDepart, &QTimer::timeout,this, [=](){
-        ui->listDepartament->reset();
-        QSettings set ("settings.ini", QSettings::IniFormat);
-        set.beginGroup("UpdateInfo");
-        QDateTime timeLastUpdate( set.value("date", QDateTime::fromTime_t(50)).toDateTime());
-        if (timeLastUpdate.date() == QDateTime::fromTime_t(50).date())
-        {
-            ui->dataUpdate->setText("Установите обновление");
-        }
-        else
-        {
-            ui->dataUpdate->setText("Дата: " + timeLastUpdate.date().toString() + "\nРазмер: " + QString::number(set.value("size", -1).toInt() / 1024 / 1024 ) + " MB");
-
-        }
-        qDebug() << timeLastUpdate.date().toString();
-        set.endGroup();
+        ui->listDepartament->clearSelection();
+        setTextPanel();
     });
 
 }
 
 MainWindow::~MainWindow()
 {
+    if (_zipThread)
+    {
+        _zipThread->quit();
+        _zipThread->wait();
+    }
     delete unzip;
     delete ui;
 }
 
-
-QVector<QString> getDir(QString path)
-{
-    QVector<QString> answer;
-    path = path.trimmed();
-    path = path.remove(0, 4);
-    qDebug() << path;
-    while ( -1 != path.indexOf('/'))
-    {
-        QString str = path.left(path.indexOf('/'));
-        if (str.indexOf('.') == -1){
-            answer.push_back(str);
-        }
-        qDebug() << "Директрория"  << path.indexOf('/') <<str << path.indexOf('/')+1;
-        path = path.remove(0, path.indexOf('/')+1);
-    }
-    if (path.indexOf('.') != -1){
-        answer.push_back(path);
-    }
-    answer.push_back(path);
-
-    return answer;
-}
-
-void mkDirs(QVector<QString> dirs, QString path)
-{
-    QString hereDir = path.left(4);
-    foreach (QString dir, dirs) {
-        QDir mkdirs(hereDir + dir);
-        if (!mkdirs.exists())
-        {
-            mkdirs.mkdir(hereDir + dir);
-        }
-        hereDir+="\\"+dir;
-    }
-}
-
 int CountDir(const QString &dirPath) {
     QDir dir(dirPath);
-    int count = 1;
+    int count = 0;
     if (!dir.exists()) {
         qWarning() << "Directory does not exist:" << dirPath;
         return 0;
     }
 
-    // Удаляем все файлы и директории рекурсивно
+    // Считаем все файлы и директории рекурсивно (столько же шагов сделает removeDir)
     QFileInfoList files = dir.entryInfoList(QDir::Files | QDir::Dirs | QDir::NoDotAndDotDot, QDir::DirsFirst);
     for (const QFileInfo &fileInfo : files) {
+        count++;
         if (fileInfo.isDir()) {
-            // Рекурсивно удаляем подкаталог
             count += CountDir(fileInfo.absoluteFilePath());
-        } else
-        {
-            count++;
         }
     }
     return count;
@@ -199,97 +176,86 @@ bool ThreadZip::removeDir(const QString &dirPath, int * step)
 
 void MainWindow::on_dowloadUP_clicked()
 {
+    if (_zipThread)
+    {
+        return;
+    }
 
-
-    ui->progressBar->setVisible(true);
     QList <QListWidgetItem *> item = ui->listDepartament->selectedItems();
     if (item.isEmpty())
     {
         QMessageBox::information(nullptr, "Внимание","Вы не выбрали свое подразделение");
-        ui->progressBar->hide();
+        return;
     }
-    else
+
+    if (!QFile::exists("fileDir/update.zip"))
     {
-        QFile fileUpload("fileDir/update.zip");
-        if (!fileUpload.exists())
-        {
-            QMessageBox::information(nullptr, "Внимание", "Файла для загрузки нет!");
-            ui->progressBar->hide();
-        }
-        else {
-            QSettings set("settings.ini", QSettings::IniFormat);
-            set.beginGroup("AboutApp");
-            QString pathToSave = set.value("pathToSave", "-112").toString();
-
-
-            if (pathToSave == "-112")
-            {
-                QMessageBox::information(nullptr, "Ошибка пути", "Нет пути сохранения, обращаемся к админу");
-                ui->progressBar->hide();
-                return;
-            }
-            QDir cheakDir (pathToSave);
-            if (!cheakDir.exists())
-            {
-                QMessageBox::information(nullptr, "Ошибка", "Хулиган, вставь флешку !!!");
-                ui->progressBar->hide();
-                return;
-            }
-            QFile file("history_dowload.json");
-            if (file.open(QIODevice::ReadWrite) | QIODevice::Text)
-            {
-                QJsonDocument doc ;
-                QJsonObject jObj;
-                QJsonObject jObjHistory;
-                if (file.size()>0)
-                {
-                    file.seek(0);
-                    QByteArray read = file.readAll();
-                    doc = QJsonDocument::fromJson(read);
-                    if (doc.isObject())
-                    {
-                        jObj = doc.object();
-                    }
-                }
-                jObjHistory = jObj["history"].toObject();
-                jObjHistory [QString::number(QDateTime::currentDateTime().toMSecsSinceEpoch())] = item[0]->text();
-                jObj["history"] = jObjHistory;
-                doc = QJsonDocument(jObj);
-                file.resize(0);
-                file.write(doc.toJson());
-                file.close();
-            }
-
-            QMessageBox::information(nullptr,"Внимание","Обнволение началось");
-
-            unzip = new ThreadZip(pathToSave+ "Обновление Dr.Web");
-            ui->progressBar->setVisible(true);
-            ui->progressBar->setValue(0);
-            QThread *thread = new QThread(this);
-            unzip->moveToThread(thread);
-            connect(thread, &QThread::started, this, [=](){
-                ui->dowloadUP->setDisabled(true);
-                qDebug() << "Disable Button";
-            });
-            connect(thread, &QThread::started, unzip, &ThreadZip::unZip);
-
-            connect(unzip,&ThreadZip::complateOperation,this, [=](){
-                QMessageBox::information(nullptr,"Внимание","Обновление успешно загруженно");
-                ui->progressBar->hide();
-                ui->dowloadUP->setEnabled(true);
-            });
-
-            connect(unzip,&ThreadZip::changePB, this,[=](int k)
-            {
-                ui->progressBar->setValue(k);
-            });
-
-            connect(unzip,&ThreadZip::setPB, this, [=](int k){
-                ui->progressBar->setRange(0,k);
-            });
-            thread->start();
-        }
+        QMessageBox::information(nullptr, "Внимание", "Файла для загрузки нет!");
+        return;
     }
+
+    QSettings set("settings.ini", QSettings::IniFormat);
+    set.beginGroup("AboutApp");
+    QString pathToSave = set.value("pathToSave", "-112").toString();
+    set.endGroup();
+
+    if (pathToSave == "-112")
+    {
+        QMessageBox::information(nullptr, "Ошибка пути", "Нет пути сохранения, обращаемся к админу");
+        return;
+    }
+    QDir cheakDir (pathToSave);
+    if (!cheakDir.exists())
+    {
+        QMessageBox::information(nullptr, "Ошибка", "Хулиган, вставь флешку !!!");
+        return;
+    }
+
+    const QString departament = item[0]->text();
+
+    QMessageBox::information(nullptr,"Внимание","Обнволение началось");
+
+    unzip = new ThreadZip(cheakDir.filePath("Обновление Dr.Web"));
+    _zipThread = new QThread(this);
+    unzip->moveToThread(_zipThread);
+
+    ui->dowloadUP->setDisabled(true);
+    ui->progressBar->setValue(0);
+    ui->progressBar->setVisible(true);
+
+    connect(_zipThread, &QThread::started, unzip, &ThreadZip::unZip);
+
+    connect(unzip, &ThreadZip::complateOperation, this, [=](bool success, const QString &message){
+        _zipThread->quit();
+        if (success)
+        {
+            appendHistory(departament);
+            QMessageBox::information(nullptr, "Внимание", "Обновление успешно загруженно");
+        }
+        else
+        {
+            QMessageBox::warning(nullptr, "Ошибка", message);
+        }
+        ui->progressBar->hide();
+        ui->dowloadUP->setEnabled(true);
+    });
+
+    connect(_zipThread, &QThread::finished, this, [=](){
+        delete unzip;
+        unzip = nullptr;
+        _zipThread->deleteLater();
+        _zipThread = nullptr;
+    });
+
+    connect(unzip,&ThreadZip::changePB, this,[=](int k)
+    {
+        ui->progressBar->setValue(k);
+    });
+
+    connect(unzip,&ThreadZip::setPB, this, [=](int k){
+        ui->progressBar->setRange(0,k);
+    });
+    _zipThread->start();
 }
 
 ThreadZip::ThreadZip(const QString outputDir)
@@ -300,54 +266,63 @@ ThreadZip::ThreadZip(const QString outputDir)
 void ThreadZip::unZip()
 {
     QZipReader read("fileDir/update.zip");
-    if (read.isReadable()) {
-        if (!read.exists()) {
+    if (!read.exists() || !read.isReadable()) {
+        emit complateOperation(false, "Не удалось открыть архив обновления");
+        return;
+    }
+
+    QDir outputDir(_outDir);
+
+    if (outputDir.exists()) {
+        emit setPB(CountDir(_outDir));
+        int step = 0;
+        if (!removeDir(_outDir, &step)) {
+            emit complateOperation(false, "Не удалось удалить старое обновление:\n" + _outDir);
+            return;
+        }
+    }
+    if (!QDir().mkpath(_outDir)) {
+        emit complateOperation(false, "Не удалось создать папку:\n" + _outDir);
+        return;
+    }
+
+    const QString rootPath = QDir::cleanPath(outputDir.absolutePath()) + "/";
+    const QVector<QZipReader::FileInfo> allFiles = read.fileInfoList();
+    int totalFiles = allFiles.size(), processedFiles = 0;
+
+    emit setPB(totalFiles);
+    emit changePB(0);
+
+    for (const QZipReader::FileInfo &fileInfo : allFiles) {
+        const QString filePath = QDir::cleanPath(outputDir.absoluteFilePath(fileInfo.filePath));
+
+        // Не даём архиву писать за пределы папки назначения ("../")
+        if (!filePath.startsWith(rootPath, Qt::CaseInsensitive)) {
+            emit complateOperation(false, "Недопустимый путь в архиве:\n" + fileInfo.filePath);
             return;
         }
 
-        QString outputDirPath = _outDir;
-        QDir outputDir(outputDirPath);
-
-        if (!outputDir.exists()) {
-            outputDir.mkpath(outputDirPath);
-        }
-        else
-        {
-            emit setPB(CountDir(outputDirPath));
-            int step = 0;
-            removeDir(outputDirPath, &step);
-            outputDir.mkpath(outputDirPath);
-            //            QApplication::processEvents();
-        }
-
-        const QVector<QZipReader::FileInfo> allFiles = read.fileInfoList();
-        int totalFiles = allFiles.size(), processedFiles = 0;
-
-        setPB(totalFiles);
-        changePB(0);
-
-        for (const QZipReader::FileInfo &fileInfo : allFiles) {
-            QString filePath = outputDirPath + "/" + fileInfo.filePath;
-
-            if (fileInfo.isDir) {
-                QDir().mkpath(filePath);
-            } else if (fileInfo.isFile) {
-                QFile outFile(filePath);
-                if (outFile.open(QIODevice::WriteOnly)) {
-                    outFile.write(read.fileData(fileInfo.filePath));
-                    outFile.close();
-                }
+        if (fileInfo.isDir) {
+            if (!QDir().mkpath(filePath)) {
+                emit complateOperation(false, "Не удалось создать папку:\n" + filePath);
+                return;
             }
-            processedFiles++;
-            changePB(processedFiles);
+        } else if (fileInfo.isFile) {
+            QDir().mkpath(QFileInfo(filePath).absolutePath());
+            QFile outFile(filePath);
+            const QByteArray data = read.fileData(fileInfo.filePath);
+            if (!outFile.open(QIODevice::WriteOnly) || outFile.write(data) != data.size()) {
+                emit complateOperation(false, "Не удалось записать файл:\n" + filePath);
+                return;
+            }
+            outFile.close();
         }
-        read.close();
-
-        complateOperation();
-    } else {
-        complateOperation();
-        return;
+        processedFiles++;
+        emit changePB(processedFiles);
     }
+    read.close();
+
+    emit complateOperation(true, QString());
 }
 
 void MainWindow::on_font1_clicked()
@@ -387,32 +362,27 @@ void MainWindow::on_font2_clicked()
 
 void MainWindow::setTextPanel()
 {
+    QSettings set ("settings.ini", QSettings::IniFormat);
+    set.beginGroup("UpdateInfo");
+    QDateTime timeLastUpdate = set.value("date").toDateTime();
+    if (!timeLastUpdate.isValid())
     {
-        QSettings set ("settings.ini", QSettings::IniFormat);
-        set.beginGroup("UpdateInfo");
-        QDateTime timeLastUpdate( set.value("date", QDateTime::fromTime_t(50)).toDateTime());
-        if (timeLastUpdate.date() == QDateTime::fromTime_t(50).date())
-        {
-            ui->dataUpdate->setText("Установите обновление");
-        }
-        else
-        {
-            ui->dataUpdate->setText("Дата: " + timeLastUpdate.date().toString() + "\nРазмер: " + QString::number(set.value("size", -1).toInt() / 1024 / 1024 ) + " MB");
-
-        }
-        qDebug() << timeLastUpdate.date().toString();
-        set.endGroup();
+        ui->dataUpdate->setText("Установите обновление");
     }
+    else
+    {
+        const double sizeMB = set.value("size", 0).toLongLong() / 1024.0 / 1024.0;
+        ui->dataUpdate->setText("Дата: " + timeLastUpdate.date().toString("dd.MM.yyyy") + "\nРазмер: " + QString::number(sizeMB, 'f', 1) + " MB");
+    }
+    set.endGroup();
 }
+
 void MainWindow::on_men_updat_triggered()
 {
-    //    if (passwdCheack())                 ---- заменить
     if (passwdCheack())
     {
         dialogfromupdatefiles dil;
         connect(&dil, &dialogfromupdatefiles::changeData, this, &MainWindow::setTextPanel);
-
-        dil.show();
         dil.exec();
     }
 }
@@ -422,9 +392,7 @@ void MainWindow::on_path_to_save_triggered()
     if (passwdCheack())
     {
         dialogsetpathtosave dil;
-        dil.show();
         dil.exec();
-
     }
 }
 
@@ -441,9 +409,8 @@ void MainWindow::on_view_gansta_triggered()
 {
     if (passwdCheack())
     {
-    listgansta dil;
-    dil.show();
-    dil.exec();
+        listgansta dil;
+        dil.exec();
     }
 }
 
@@ -451,8 +418,7 @@ void MainWindow::on_about_po_triggered()
 {
     if (passwdCheack())
     {
-    aboutMe dil;
-    dil.show();
-    dil.exec();
+        aboutMe dil;
+        dil.exec();
     }
 }

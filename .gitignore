@@ -1,0 +1,19 @@
+# Сборка qmake / Qt Creator
+build*/
+debug/
+release/
+Makefile*
+object_script.*
+.qmake.stash
+ui_*.h
+moc_*.cpp
+qrc_*.cpp
+*.o
+*.obj
+*.exe
+*.pro.user*
+
+# Данные времени выполнения
+fileDir/
+history_dowload.json
+dist/

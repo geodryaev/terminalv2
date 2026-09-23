@@ -4,11 +4,9 @@
 #
 #-------------------------------------------------
 
-QT       += core gui
-QT       += widgets
-QT       += gui widgets
-
-greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
+QT       += core gui widgets
+# QZipReader (qzipreader_p.h) в Qt 6 лежит в приватной части QtCore
+QT       += core-private
 
 TARGET = untitled
 TEMPLATE = app
@@ -24,13 +22,9 @@ DEFINES += QT_DEPRECATED_WARNINGS
 # You can also select to disable deprecated APIs only up to a certain version of Qt.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
-CONFIG += c++11
-CONFIG += private
+CONFIG += c++17
 
 RESOURCES += resources.qrc
-
-INCLUDEPATH += C:\Qt\Qt5.11.3\5.11.3\mingw53_32\include\QtGui\5.11.3
-INCLUDEPATH += C:\Qt\Qt5.11.3\5.11.3\mingw53_32\include\QtCore\5.11.3
 
 SOURCES += \
     aboutme.cpp \
